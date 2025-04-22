@@ -1,0 +1,687 @@
+EXP 3 1 pass of MACRO
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.StringTokenizer;
+
+class MACRO {
+   static String[][] mnt = new String[5][3];
+   static String[][] ala = new String[10][2];
+   static String[][] mdt = new String[20][1];
+   static int mntc = 0;
+   static int mdtc = 0;
+   static int alac = 0;
+
+   MACRO() {
+   }
+
+   public static void main(String[] var0) {
+      pass1();  
+System.out.println("\n*********PASS-1 MACROPROCESSOR***********\n");
+      System.out.println("MACRO NAME TABLE (MNT)\n");
+      System.out.println("i macro loc\n");
+      display(mnt, mntc, 3);
+      System.out.println("\n");
+      System.out.println("ARGUMENT LIST ARRAY(ALA) for Pass1\n");
+      display(ala, alac, 2);
+      System.out.println("\n");
+      System.out.println("MACRO DEFINITION TABLE (MDT)\n");
+      display(mdt, mdtc, 1);
+      System.out.println("\n");
+   }
+
+   static void pass1() {
+      boolean var0 = false;
+      String var3 = "";
+
+      try {
+         BufferedReader var5 = new BufferedReader(new FileReader("input.txt"));
+         File var6 = new File("pass1_output.txt");
+         if (!var6.exists()) {
+            var6.createNewFile();
+         }
+         BufferedWriter var7 = new BufferedWriter(new FileWriter(var6.getAbsoluteFile()));
+
+         while(true) {
+            String var2;
+            while((var2 = var5.readLine()) != null) {
+               if (var2.equalsIgnoreCase("MACRO")) {
+                  for(var3 = var2; !(var2 = var5.readLine()).equalsIgnoreCase("MEND"); var3 = var2) {
+                     int var1;
+                     int var13;
+                     if (!var3.equalsIgnoreCase("MACRO")) {
+                        var13 = var2.indexOf("&");
+                        String var4 = var2.substring(var13);
+
+                        for(var1 = 0; var1 < alac; ++var1) {
+                           if (ala[var1][1].equals(var4)) {
+                              String[] var14 = ala[var1];
+                              var2 = var2.replaceAll(var4, "#" + var14[0]);
+                           }
+                        }
+                     } else {
+                        StringTokenizer var8 = new StringTokenizer(var2);
+                        String[] var9 = new String[var8.countTokens()];
+
+                        for(var1 = 0; var1 < var9.length; ++var1) {
+                           var9[var1] = var8.nextToken();
+                        }
+                        mnt[mntc][0] = "" + (mntc + 1);
+                        mnt[mntc][1] = var9[0];
+                        String[] var10000 = mnt[mntc++];
+                        int var10002 = ++mdtc;
+                        var10000[2] = "" + var10002;
+                        var8 = new StringTokenizer(var9[1], ",");
+                        String[] var10 = new String[var8.countTokens()];
+
+                        for(var1 = 0; var1 < var10.length; ++var1) {
+                           var10[var1] = var8.nextToken();
+                           ala[alac][0] = "" + alac;
+                           var13 = var10[var1].indexOf("=");
+                           if (var13 != -1) {
+                              ala[alac++][1] = var10[var1].substring(0, var13);
+                           } else {
+                              ala[alac++][1] = var10[var1];
+                           }
+                        }
+                     }
+
+                     mdt[mdtc - 1][0] = var2;
+                     ++mdtc;
+                  }
+
+                  mdt[mdtc - 1][0] = var2;
+               } else {
+                  var7.write(var2);
+                  var7.newLine();
+               }
+            }
+
+            var7.close();
+            break;
+         }
+      } catch (FileNotFoundException var11) {
+         System.out.println("UNABLE TO END FILE ");
+      } catch (IOException var12) {
+         var12.printStackTrace();
+      }
+   }
+
+   static void display(String[][] var0, int var1, int var2) {
+      for(int var3 = 0; var3 < var1; ++var3) {
+         for(int var4 = 0; var4 < var2; ++var4) {
+            System.out.print(var0[var3][var4] + " ");
+         }
+         System.out.println();
+      }
+   }
+}
+ 
+ 
+EXP 4 2 pass of MACRO
+Macroprocessor:
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+public class MacroProcessor {
+	
+	private static HashMap<String,Integer> mnt = new HashMap<String,Integer>(); 
+	private static ArrayList<String> mdt = new ArrayList<String>(),ala = new ArrayList<String>();
+	private static String FileContent;
+	private static Pass1 pass1 = new Pass1();
+	private static Pass2 pass2 = new Pass2();
+
+	public static void main(String[] args) throws IOException {
+		
+		System.out.println("******** Two Pass Macro-Processor **********\n\n");
+		/*System.out.println("Enter Name of File containing assembler program\n");
+		String FileName = scan.nextLine();*/
+		FileContent = getContentFrom("C:\\Users\\admin\\Desktop\\asscode.txt");
+		//System.out.println(FileContent +"Contents of MNT are : \n\n");
+		pass1.start();
+		
+		System.out.println("Contents of MNT are : \n\n");
+		System.out.println(mnt);
+		System.out.println("\n\nContents of MDT are : \n\n");
+		System.out.println(mdt);
+		System.out.println("\n\nContents of ALA are : \n");
+		System.out.println(ala);
+		
+		pass2.start();
+
+	}
+
+	private static String getContentFrom(String fileName) throws IOException {
+		
+		String content;
+		File file = new File(fileName);
+		FileInputStream fis = new FileInputStream(file);
+		DataInputStream dis = new DataInputStream(fis);
+
+		int f_count = fis.available();
+
+		byte[] b = new byte[f_count];
+		dis.readFully(b);
+
+		content = new String(b);
+		
+		dis.close();
+		return content;
+	}
+
+	public static String getFileContent() {
+		return MacroProcessor.FileContent;
+	}
+	
+	public static Integer getIndexFromMnt(String name) {
+		
+		if(mnt.containsKey(name))
+			return mnt.get(name);
+		return -1;
+	}
+
+	public static Boolean mntContains(String name) {
+		
+		if(mnt.containsKey(name))
+			return true;
+		
+		return false;
+		
+	}
+	
+	public static void updateMnt(String name, int mdtp) {
+		mnt.put(name, mdtp);
+	}
+	
+	public static Boolean inMnt(String name) {
+		
+			if(mnt.get(name) == null) {
+				return false;
+			}
+		
+		return true;
+	}
+
+	public static String getLineFromMdt(int index) {
+		return mdt.get(index);
+	}
+
+	public static void updateMdt(String line) {
+		mdt.add(line);
+	}
+
+	public static String getLineFromAla(int index) {
+		return ala.get(index);
+	}
+
+	public static void updateAla(String arg) {
+		ala.add(arg);
+	}
+	
+	public static String getArgumentAtIndex(int index) {
+		return ala.get(index);
+	}
+	
+	public static int getAlaSize() {
+		return ala.size();
+	}
+	
+	public static void initAla() {
+		ala = new ArrayList<String>();
+	}
+
+	public void prepareALA(String[] lineContent2) {
+		
+		if(lineContent2[1].matches(".+,.+")) {
+			String[] commaSepr = lineContent2[1].split(",");
+			for(int i=0; i<commaSepr.length; i++) {
+				updateAla(commaSepr[i]);
+			}
+			return;
+		}
+		for(int i=1; i<lineContent2.length; i++) {
+			updateAla(lineContent2[i]);
+		}
+		
+	}
+
+}
+
+Pass 1:
+public class Pass1 extends MacroProcessor{
+	
+	private String[] fileContent,lineContent;
+	private String currentLine;
+	private int mdtp = 0;
+	
+	public void start() {
+		
+		int i=1;
+		fileContent = getFileContent().split("\\r?\\n");
+		currentLine = fileContent[0];
+		
+		while(!currentLine.equals("END")) {
+			
+			lineContent = currentLine.split("\\s+");
+			
+			if(lineContent[0].equals("MACRO")) {
+				
+				currentLine = fileContent[i++];
+				lineContent = currentLine.split("\\s+");
+				if(inMnt(lineContent[0])) {
+					System.out.println(lineContent[0] + " already exists !!!!, Skipping this MACRO");
+					continue;
+				}
+				updateMnt(lineContent[0],mdtp);
+				prepareALA(lineContent);
+				updateMdt(this.currentLine);
+				mdtp++;
+				currentLine = fileContent[i++];
+				
+				while(!currentLine.equals("MEND")) {
+					
+					String substitutedLine = substitute_index_notation(currentLine);
+					updateMdt(substitutedLine);
+					mdtp++;
+					currentLine = fileContent[i++];
+					
+				}
+				
+				updateMdt("MEND");
+				mdtp++;
+				initAla();
+				continue;
+			}
+			currentLine = fileContent[i++];
+			
+		}
+		
+	}
+
+	private String substitute_index_notation(String currentLine2) {
+		
+		lineContent = currentLine.split("\\s+");
+		String subsLine = "";
+		Boolean isFound = false;
+		int alaSize = getAlaSize();
+		for(String currentWord : lineContent) {
+			
+			if(currentWord.matches(".+,.+")) {
+				
+				String[] commaSepr = currentWord.split(",");
+				for(String comma : commaSepr) {
+					for(int i=0; i<alaSize; i++) {
+						if(comma.equals(getArgumentAtIndex(i))) {
+							subsLine = subsLine +  i + " ";
+							isFound = true;
+							break;
+						}
+					}
+				}
+				
+				
+			}else {
+				for(int i=0; i<alaSize; i++) {
+					if(currentWord.equals(getArgumentAtIndex(i))) {
+						subsLine = subsLine + i + " ";
+						isFound = true;
+						break;
+					}
+				}
+				if(!isFound)
+				subsLine = subsLine + currentWord + " ";
+			}
+			
+		}
+		
+		return subsLine;
+	}
+
+}
+
+Pass 2:
+public class Pass2 extends MacroProcessor {
+	
+	private String newFileContent = "";
+	private String finalFileContent = "";
+	private int mdtp;
+	
+	public void start() {
+		
+		updateFileContent();
+		String[] lineContent = newFileContent.split("\\r?\\n");
+		
+		for(String currentLine : lineContent) {
+			
+			String[] line = currentLine.split("\\s+");
+			
+			if(macroNameFoundAt(line)) {
+				
+				//System.out.println("macro name found " + line[0]);
+			
+				mdtp = getIndexFromMnt(line[0]);
+				mdtp++;
+				
+				prepareALA(line);
+				
+				String mdtLine = getLineFromMdt(mdtp);
+				while(!mdtLine.equals("MEND")) {
+					
+					String[] mdtspace = mdtLine.split("\\s+");
+					
+					finalFileContent = finalFileContent + mdtspace[0] + " ";
+					for(int i=1; i<mdtspace.length; i++) {
+						//System.out.println(mdtspace[i]);
+						mdtspace[i] = getLineFromAla(Integer.parseInt(mdtspace[i]));
+						finalFileContent = finalFileContent + mdtspace[i] + " ";
+					}
+					//mdtLine = mdtspace.toString();
+					finalFileContent = finalFileContent + "\n";
+					mdtLine = getLineFromMdt(++mdtp); 		
+				}
+				
+				initAla();
+				continue;				
+			}
+			
+			finalFileContent = finalFileContent + currentLine + "\n";		
+		}		
+		System.out.println("\n\nFinal content of file after processing  : \n\n"+finalFileContent);
+	}
+
+	private boolean macroNameFoundAt(String[] line) {		
+		String macroName = "";
+		macroName = line[0];
+		if(mntContains(macroName))
+			return true;		
+		return false;
+	}
+
+	private void updateFileContent() {		
+		String[] temp = getFileContent().split("\\r?\\n");
+		int i = 0;
+		while(!temp[i].contains("START")) 
+			i++;
+		
+		for(;i<temp.length;i++) {			
+			newFileContent = newFileContent + temp[i] + "\n";			
+		}		
+	}	
+}
+ 
+EXP 5 Lexical Analyzer
+import java.util.regex.*;
+import java.util.*;
+
+public class LexicalAnalyzer {
+
+    public static void token(String str) {
+        String operators[] = {"=", "+", "-", "/", "*", "%", "&&", "<<", ">>", "||", "!=", "+=", "-=", "*=", "/=", "%=", "^"};
+        String punctuators[] = {"!", "@", "#", "$", "(", ")", "_", "{", "}", "[", "]", "?", ".", ":", ","};
+        String keywords[] = {"boolean", "char", "int", "String", "long", "float", "double", "void", "System", "out", "println", "if", "else", "try", "new", "super", "null", "const", "goto", "true", "false"};
+        String[] strArr = str.split("\\s+|(?=[(){}\\[\\];,.])|(?<=[(){}\\[\\];,.])");
+        for (String currStr : strArr) {
+            if (currStr.trim().isEmpty()) {
+                continue;
+            }
+            if (currStr.equals(";")) {
+                System.out.println("(TERMINATOR, " + currStr + ")");
+                continue;
+            }
+            boolean matched = false;
+            for (String operator : operators) {
+                if (currStr.equals(operator)) {
+                    System.out.println("(OPERATOR, " + currStr + ")");
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) continue;
+
+            for (String punctuator : punctuators) {
+                if (currStr.equals(punctuator)) {
+                    System.out.println("(PUNCTUATOR, " + currStr + ")");
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) continue;
+
+            for (String keyword : keywords) {
+                if (currStr.equals(keyword)) {
+                    System.out.println("(KEYWORD, " + currStr + ")");
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) continue;
+            if (currStr.matches("\\d+")) {
+                System.out.println("(CONSTANT, " + currStr + ")");
+                continue;
+            }
+            System.out.println("(IDENTIFIER, " + currStr + ")");
+        }
+    }
+    public static void main(String[] args) {
+        String code = "int a = 5; System.out.println(a);";
+        token(code);
+    }
+}
+ 
+EXP 6 Shift reduce parser
+#include<stdio.h>
+#include<string.h>
+int k=0,z=0,i=0,j=0,c=0;
+char a[16],ac[20],stk[15],act[10];
+void check();
+int main()
+   { puts("GRAMMAR is E->E+E \n E->E*E \n E->(E) \n E->id");
+  	puts("enter input string ");
+  	gets(a);
+  	c=strlen(a);
+  	strcpy(act,"SHIFT->");
+  	puts("stack \t input \t action");
+  	for(k=0,i=0; j<c; k++,i++,j++)
+   	{
+     	if(a[j]=='i' && a[j+1]=='d')
+       	{
+          	stk[i]=a[j];
+          	stk[i+1]=a[j+1];
+          	stk[i+2]='\0';
+          	a[j]=' ';
+          	a[j+1]=' ';
+              printf("\n$%s\t%s$\t%sid",stk,a,act);
+          	check();
+       	}
+     	else
+       	{
+          	stk[i]=a[j];
+          	stk[i+1]='\0';
+          	a[j]=' ';
+              printf("\n$%s\t%s$\t%ssymbols",stk,a,act);
+          	check();
+      	} } }
+void check()
+   {
+ 	strcpy(ac,"REDUCE TO E");
+ 	for(z=0; z<c; z++)
+   	if(stk[z]=='i' && stk[z+1]=='d')
+     	{
+       	stk[z]='E';
+       	stk[z+1]='\0';
+           printf("\n$%s\t%s$\t%s",stk,a,ac);
+       	j++;
+     	}
+ 	for(z=0; z<c; z++)
+   	if(stk[z]=='E' && stk[z+1]=='+' && stk[z+2]=='E')
+     	{
+       	stk[z]='E';
+       	stk[z+1]='\0';
+       	stk[z+2]='\0';
+           printf("\n$%s\t%s$\t%s",stk,a,ac);
+       	i=i-2;
+     	}
+ 	for(z=0; z<c; z++)
+   	if(stk[z]=='E' && stk[z+1]=='*' && stk[z+2]=='E')
+     	{
+       	stk[z]='E';
+       	stk[z+1]='\0';
+       	stk[z+1]='\0';
+           printf("\n$%s\t%s$\t%s",stk,a,ac);
+       	i=i-2;
+     	}
+ 	for(z=0; z<c; z++)
+   	if(stk[z]=='(' && stk[z+1]=='E' && stk[z+2]==')')
+     	{
+       	stk[z]='E';
+       	stk[z+1]='\0';
+       	stk[z+1]='\0';
+           printf("\n$%s\t%s$\t%s",stk,a,ac);
+       	i=i-2;
+     	}
+   }
+ 
+EXP 7 
+infix to postfix
+def prec(c):    
+    if c == '^':
+        return 3
+    elif c == '/' or c == '*':
+        return 2
+    elif c == '+' or c == '-':
+        return 1
+    else:
+        return -1
+def infixToPostfix(s):
+    st = []
+    result = ""
+    for i in range(len(s)):
+        c = s[i]
+        if (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z') or (c >= '0' and c <= '9'):
+            result += c
+        elif c == '(':
+            st.append('(')
+        elif c == ')':
+            while st[-1] != '(':
+                result += st.pop()
+            st.pop()
+        else:
+            while st and (prec(c) < prec(st[-1]) or prec(c) == prec(st[-1])):
+                result += st.pop()
+            st.append(c)   
+    while st:
+        result += st.pop()
+    print(result)
+exp = "a+b*(c^d-e)^(f+g*h)-i"
+infixToPostfix(exp)
+
+Three Address Code
+
+import re
+def generate_tac(expression):
+    temp_count = 1
+    tac_code = []
+    tokens = re.split(r'(\+|\-|\*|/|\(|\))', expression)
+    tokens = [t.strip() for t in tokens if t.strip()]    
+    operators = {'+': 1, '-': 1, '*': 2, '/': 2}
+    output = []
+    stack = []
+    for token in tokens:
+        if token.isalnum():
+            output.append(token)
+        elif token in operators:
+            while (stack and stack[-1] in operators and 
+                   operators[token] <= operators[stack[-1]]):
+                output.append(stack.pop())
+            stack.append(token)
+        elif token == '(':
+            stack.append(token)
+        elif token == ')':
+            while stack and stack[-1] != '(':
+                output.append(stack.pop())
+            stack.pop()    
+    while stack:
+        output.append(stack.pop())    
+    stack = []
+    for token in output:
+        if token not in operators:
+            stack.append(token)
+        else:
+            op2 = stack.pop()
+            op1 = stack.pop()
+            temp_var = f'T{temp_count}'
+            tac_code.append(f'{temp_var} = {op1} {token} {op2}')
+            stack.append(temp_var)
+            temp_count += 1    
+    return tac_code
+if __name__ == "__main__":
+    expr = input("Enter an arithmetic expression: ")
+    tac = generate_tac(expr)
+    print("Three-Address Code:")
+    for line in tac:
+        print(line)
+ 
+EXP 8  Implementation code optimization 
+#include <stdio.h>
+int main() {
+    int a = 5, b = 10, c;
+    c = a * 2 + b * 2;
+    for (int i = 0; i < 10; i++) {
+        int x = 5 * 2;
+        printf("%d ", x);
+    }    
+    int d = 20;  
+    return 0;
+}	
+
+Output:
+Step 1: Dead Code Elimination
+Modified Code (After Dead Code Elimination)
+
+#include <stdio.h>
+int main() {
+    int a = 5, b = 10, c;
+    c = a * 2 + b * 2;  
+    for (int i = 0; i < 10; i++) {
+        int x = 5 * 2;  
+        printf("%d ", x);
+    }    
+     int d = 20;
+    return 0;
+}
+
+Step 2: Constant Folding
+Modified Code (After Constant Folding)
+
+#include <stdio.h>
+int main() {
+    int a = 5, b = 10, c;
+    c = 10 + 20;  
+    for (int i = 0; i < 10; i++) {
+        int x = 10; 
+        printf("%d ", x);
+    }    
+    return 0;
+}
+
+Step 3: Loop-Invariant Code Motion
+Modified Code (After Loop-Invariant Code Motion)
+
+#include <stdio.h>
+int main() {
+    int a = 5, b = 10, c;
+    c = 10 + 20;
+    int x = 10;  
+    for (int i = 0; i < 10; i++) {
+        printf("%d ", x);
+    }    
+    return 0;
+}
