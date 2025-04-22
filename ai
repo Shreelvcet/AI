@@ -384,34 +384,53 @@ print(f"Updated probability of a rainy day given clear sky: {posterior_rainy:.2f
  
 EXP 9 Implement a rule-based AI to play a Tic-Tac-Toe game.
 
-% Define winning conditions win(Player, Board) :-
-(Board = [Player, Player, Player, _, _, _, _, _, _]);
-(Board = [_, _, _, Player, Player, Player, _, _, _]);
-(Board = [_, _, _, _, _, _, Player, Player, Player]);
-(Board = [Player, _, _, Player, _, _, Player, _, _]);
-(Board = [_, Player, _, _, Player, _, _, Player, _]);
-(Board = [_, _, Player, _, _, Player, _, _, Player]);
-(Board = [Player, _, _, _, Player, _, _, _, Player]);
-(Board = [_, _, Player, _, Player, _, Player, _, _]).
+% Define winning conditions
+win(Player, Board) :-
+    Board = [Player, Player, Player, _, _, _, _, _, _];
+    Board = [_, _, _, Player, Player, Player, _, _, _];
+    Board = [_, _, _, _, _, _, Player, Player, Player];
+    Board = [Player, _, _, Player, _, _, Player, _, _];
+    Board = [_, Player, _, _, Player, _, _, Player, _];
+    Board = [_, _, Player, _, _, Player, _, _, Player];
+    Board = [Player, _, _, _, Player, _, _, _, Player];
+    Board = [_, _, Player, _, Player, _, Player, _, _].
 
-% Check if position is free free(Position, Board) :-
-nth0(Position, Board, empty).
+% Check if position is free
+free(Position, Board) :-
+    nth0(Position, Board, empty).
 
-% Find winning move for AI
-winning_move(Board, Player, Move) :- free(Move, Board),
-nth0(Move, Board, Player, NewBoard), win(Player, NewBoard).
+% Find winning move
+winning_move(Board, Player, Move) :-
+    free(Move, Board),
+    nth0(Move, Board, empty, Rest),
+    nth0(Move, NewBoard, Player, Rest),
+    win(Player, NewBoard).
 
-% Find blocking move to prevent opponent from winning blocking_move(Board, Move) :-
-winning_move(Board, o, Move).
+% Blocking move for 'o'
+blocking_move(Board, Move) :-
+    winning_move(Board, o, Move).
 
-% Take the center if available center_move(Board, Move) :-
-nth0(4, Board, empty), Move = 4.
+% Take the center if available
+center_move(Board, Move) :-
+    nth0(4, Board, empty),
+    Move = 4.
 
-% Take a corner if available corner_move(Board, Move) :-
-member(Move, [0, 2, 6, 8]), nth0(Move, Board, empty).
+% Take a corner if available
+corner_move(Board, Move) :-
+    member(Move, [0, 2, 6, 8]),
+    nth0(Move, Board, empty).
 
-% Pick first available move as fallback first_available(Board, Move) :-
-nth0(Move, Board, empty).
+% First available move
+first_available(Board, Move) :-
+    nth0(Move, Board, empty).
 
-% AI move: Prioritize winning, blocking, center, corner, and fallback best_move(Board, Move) :-
-(winning_move(Board, x, Move), !); (blocking_move(Board, Move), !); (center_move(Board, Move), !); (corner_move(Board, Move), !); first_available(Board, Move).
+% AI decision logic
+best_move(Board, Move) :-
+    (winning_move(Board, x, Move)) ;
+    (blocking_move(Board, Move)) ;
+    (center_move(Board, Move)) ;
+    (corner_move(Board, Move)) ;
+    (first_available(Board, Move)).
+
+% Querry 
+best_move([x, o, x, o, empty, empty, empty, x, o], Move).
